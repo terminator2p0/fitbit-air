@@ -8,7 +8,7 @@ Phase 0: product definition and data feasibility.
 
 Development is local-first in this Git repository. Cloud deployment begins only after the local dashboard, synchronization, and privacy controls have been reviewed.
 
-The planned primary integration is the Google Health API. Health Connect is intentionally out of scope because this product has no Android application. Data that Google Health does not expose will be entered manually or calculated from available measurements.
+The primary integration is the Google Health API. Health Connect is intentionally out of scope because this product has no Android application. Python ingestion stores reconciled wearable data in BigQuery; data that Google Health does not expose will be entered manually or calculated from available measurements.
 
 ## Phase 0 documents
 
@@ -27,14 +27,14 @@ This dashboard provides personal wellness information, trends, and explainable i
 
 The default branch is `main`. Feature work should use short-lived branches and return through reviewed commits. Local secrets belong in `.env.local`, based on `.env.example`; secret files, local databases, exports, and health-data backups are excluded from Git.
 
-The implementation runs locally with the web server and Firestore emulator. The same server-side data layer will use Google Cloud Firestore when deployed.
+The implementation runs locally as a Next.js web server plus a Python ingestion worker. BigQuery stores health data and Secret Manager stores OAuth credentials.
 
-## Local backend
+## Local development
 
 1. Install dependencies with `pnpm install`.
-2. Install Java 21 or later for the current Firestore emulator.
-3. Create `.env.local` from `.env.example`.
-4. Start Firestore with `pnpm emulators`.
-5. Start the dashboard with `pnpm dev`.
+2. Create `.env.local` from `.env.example`.
+3. Authenticate Application Default Credentials for Google Cloud.
+4. Start the dashboard with `pnpm dev`.
+5. Run Python tests with `pnpm test:python`.
 
-The emulator UI is available at `http://127.0.0.1:4000`. Google Health OAuth still uses your real Google Cloud OAuth client; only application storage is emulated locally.
+The Python sync runs only after Google Health OAuth succeeds and the OAuth payload exists in Secret Manager.

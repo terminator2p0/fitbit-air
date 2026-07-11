@@ -1,7 +1,5 @@
-import { FieldValue } from "firebase-admin/firestore";
-import { getAdminFirestore } from "./firestore";
 import { requireOAuthConfig } from "./config";
-import { encryptValue } from "./token-crypto";
+import { googleHealthSecretExists, storeGoogleHealthSecret } from "./google-cloud";
 
 export const GOOGLE_HEALTH_SCOPES = [
   "https://www.googleapis.com/auth/googlehealth.activity_and_fitness.readonly",
@@ -79,41 +77,27 @@ export async function storeGoogleHealthConnection(tokens: TokenResponse, identit
     throw new Error("Google did not return a refresh token; revoke consent and reconnect");
   }
 
-  const { encryptionKey } = requireOAuthConfig();
+  const { clientId, clientSecret } = requireOAuthConfig();
   const expiresAt = new Date(Date.now() + tokens.expires_in * 1000);
   const refreshTokenExpiresAt = tokens.refresh_token_expires_in
     ? new Date(Date.now() + tokens.refresh_token_expires_in * 1000)
     : null;
 
-  await getAdminFirestore().collection("integrations").doc("google-health").set(
-    {
-      provider: "google-health",
-      status: "connected",
-      identity,
-      scopes: tokens.scope.split(" "),
-      tokenType: tokens.token_type,
-      accessToken: encryptValue(tokens.access_token, encryptionKey),
-      refreshToken: encryptValue(tokens.refresh_token, encryptionKey),
-      accessTokenExpiresAt: expiresAt,
-      refreshTokenExpiresAt,
-      connectedAt: FieldValue.serverTimestamp(),
-      updatedAt: FieldValue.serverTimestamp(),
-    },
-    { merge: true },
-  );
+  await storeGoogleHealthSecret({
+    provider: "google-health",
+    clientId,
+    clientSecret,
+    identity,
+    scopes: tokens.scope.split(" "),
+    tokenType: tokens.token_type,
+    accessToken: tokens.access_token,
+    refreshToken: tokens.refresh_token,
+    accessTokenExpiresAt: expiresAt.toISOString(),
+    refreshTokenExpiresAt: refreshTokenExpiresAt?.toISOString() ?? null,
+    connectedAt: new Date().toISOString(),
+  });
 }
 
 export async function getGoogleHealthConnectionStatus() {
-  const snapshot = await getAdminFirestore()
-    .collection("integrations")
-    .doc("google-health")
-    .get();
-
-  if (!snapshot.exists) return { connected: false as const };
-  const data = snapshot.data();
-  return {
-    connected: data?.status === "connected",
-    connectedAt: data?.connectedAt?.toDate?.().toISOString() ?? null,
-    scopes: Array.isArray(data?.scopes) ? data.scopes.length : 0,
-  };
+  return { connected: await googleHealthSecretExists() };
 }

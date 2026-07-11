@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getMissingOAuthVariables, getServerConfig } from "@/server/config";
-import { checkFirestoreConnection } from "@/server/firestore";
+import { checkBigQueryConnection } from "@/server/google-cloud";
 import { getGoogleHealthConnectionStatus } from "@/server/google-health";
 
 export const runtime = "nodejs";
@@ -8,13 +8,12 @@ export const runtime = "nodejs";
 export async function GET() {
   const config = getServerConfig();
   const missing = getMissingOAuthVariables();
-  let firestore: "ready" | "unavailable" = "unavailable";
+  let bigQuery: "ready" | "unavailable" = "unavailable";
   let connection: Awaited<ReturnType<typeof getGoogleHealthConnectionStatus>> = { connected: false };
 
-  if (config.firestoreEnabled) {
+  if (config.googleCloudProject) {
     try {
-      await checkFirestoreConnection();
-      firestore = "ready";
+      if (await checkBigQueryConnection()) bigQuery = "ready";
       connection = await getGoogleHealthConnectionStatus();
     } catch {
       // Status stays non-sensitive and explains only whether the backend is reachable.
@@ -23,8 +22,8 @@ export async function GET() {
 
   return NextResponse.json({
     configured: missing.length === 0,
-    firestore,
-    firestoreMode: config.isFirestoreEmulated ? "emulator" : "cloud",
+    bigQuery,
+    dataset: config.bigQueryDataset,
     projectId: config.googleCloudProject,
     missing,
     googleHealth: connection,

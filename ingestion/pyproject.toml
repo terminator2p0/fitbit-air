@@ -1,0 +1,12 @@
+[project]
+name = "fitbit-air-ingestion"
+version = "0.1.0"
+description = "Google Health to BigQuery ingestion worker"
+requires-python = ">=3.12"
+dependencies = [
+  "google-cloud-bigquery>=3.42,<4",
+  "google-cloud-secret-manager>=2.25,<3",
+]
+
+[project.scripts]
+fitbit-air-sync = "fitbit_air_ingestion.main:main"

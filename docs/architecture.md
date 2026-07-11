@@ -20,18 +20,20 @@ The legacy Fitbit Web API is scheduled to stop syncing in September 2026. The in
 
 A browser-only application cannot safely retain OAuth client secrets or reliably run scheduled synchronization and email reminders while closed. The server is therefore responsible for OAuth token storage, data synchronization, derivations, reminders, exports, and backups.
 
-Local development uses `localhost` OAuth redirects, the Firestore emulator, and environment files excluded from Git. Cloud deployment will use managed HTTPS, Firestore, Secret Manager, and a dedicated Cloud Run service account. Real health data and exports must never be committed.
+Local development uses `localhost` OAuth redirects, Application Default Credentials, and environment files excluded from Git. Cloud deployment will use Cloud Run, BigQuery, Secret Manager, and dedicated service accounts. Real health data and exports must never be committed.
 
 ## Proposed implementation stack
 
 - Frontend: Next.js, TypeScript, React, and an accessible component system.
-- Backend: Next.js server routes and background worker initially; split service only if operational needs justify it.
-- Database: Firestore Standard with typed converters for source records, normalized measurements, daily summaries, and user context.
-- Jobs: database-backed scheduled jobs for synchronization, aggregation, and reminders.
+- Backend: Next.js server routes for the dashboard and OAuth flow.
+- Analytics store: date-partitioned and clustered BigQuery tables for raw records, normalized measurements, summaries, and manual context.
+- Ingestion: a Python Cloud Run Job for OAuth refresh, reconciled API pulls, idempotent loads, and checkpoints.
+- Secrets: Secret Manager for OAuth credentials and refresh tokens.
+- Jobs: Cloud Scheduler triggers ingestion, aggregation, and reminder tasks.
 - Charts: a React charting library with accessible tabular fallbacks.
 - Email: transactional email provider or SMTP configured by environment variables.
-- Local runtime: web process and Firestore emulator.
-- Deployment: Cloud Run and Firestore with HTTPS after local acceptance criteria pass.
+- Local runtime: Next.js plus the Python worker using Application Default Credentials.
+- Deployment: Cloud Run services/jobs, BigQuery, and Secret Manager after local acceptance criteria pass.
 
 ## Logical data flow
 
