@@ -16,6 +16,7 @@ The planned primary integration is the Google Health API. Health Connect is inte
 - [Metric catalog](docs/metric-catalog.md)
 - [Architecture decisions](docs/architecture.md)
 - [Information architecture](docs/information-architecture.md)
+- [Google Cloud setup](docs/google-cloud-setup.md)
 - [Delivery plan](docs/delivery-plan.md)
 
 ## Product boundary
@@ -26,4 +27,14 @@ This dashboard provides personal wellness information, trends, and explainable i
 
 The default branch is `main`. Feature work should use short-lived branches and return through reviewed commits. Local secrets belong in `.env.local`, based on `.env.example`; secret files, local databases, exports, and health-data backups are excluded from Git.
 
-The initial implementation will run locally with the web server and PostgreSQL. The same environment-variable contract and database migrations will later be used for cloud deployment.
+The implementation runs locally with the web server and Firestore emulator. The same server-side data layer will use Google Cloud Firestore when deployed.
+
+## Local backend
+
+1. Install dependencies with `pnpm install`.
+2. Install Java 21 or later for the current Firestore emulator.
+3. Create `.env.local` from `.env.example`.
+4. Start Firestore with `pnpm emulators`.
+5. Start the dashboard with `pnpm dev`.
+
+The emulator UI is available at `http://127.0.0.1:4000`. Google Health OAuth still uses your real Google Cloud OAuth client; only application storage is emulated locally.

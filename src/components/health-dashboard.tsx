@@ -33,6 +33,7 @@ import {
   YAxis,
 } from "recharts";
 import { activity, observations, summaryMetrics, trendData } from "@/lib/health-data";
+import { CloudConnection } from "@/components/cloud-connection";
 
 const navigation = [
   { label: "Today", icon: LayoutDashboard },
@@ -90,6 +91,7 @@ export function HealthDashboard() {
         </header>
 
         <div className="content">
+          <CloudConnection />
           <section className="summary-grid" aria-label="Daily summary">
             {summaryMetrics.map((metric) => (
               <article className={`metric-summary ${metric.tone}`} key={metric.label}>

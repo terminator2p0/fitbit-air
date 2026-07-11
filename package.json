@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "emulators": "firebase emulators:start --only firestore --project demo-fitbit-air",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
@@ -11,6 +12,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "firebase-admin": "latest",
     "lucide-react": "latest",
     "next": "latest",
     "react": "latest",
@@ -24,6 +26,7 @@
     "@types/react-dom": "latest",
     "eslint": "~9.39.1",
     "eslint-config-next": "latest",
+    "firebase-tools": "latest",
     "typescript": "~5.9.3",
     "vitest": "latest"
   },

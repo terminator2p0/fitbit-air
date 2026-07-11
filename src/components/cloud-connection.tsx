@@ -1,0 +1,59 @@
+"use client";
+
+import { CircleAlert, CircleCheck, Cloud, LoaderCircle } from "lucide-react";
+import { useEffect, useState } from "react";
+
+type ConnectionStatus = {
+  configured: boolean;
+  firestore: "ready" | "unavailable";
+  firestoreMode: "emulator" | "cloud";
+  projectId: string;
+  missing: string[];
+  googleHealth: { connected: boolean; connectedAt?: string | null; scopes?: number };
+};
+
+export function CloudConnection() {
+  const [status, setStatus] = useState<ConnectionStatus | null>(null);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/health/status", { signal: controller.signal })
+      .then((response) => {
+        if (!response.ok) throw new Error("Status request failed");
+        return response.json() as Promise<ConnectionStatus>;
+      })
+      .then(setStatus)
+      .catch((error: unknown) => {
+        if (error instanceof Error && error.name !== "AbortError") setFailed(true);
+      });
+    return () => controller.abort();
+  }, []);
+
+  if (failed) {
+    return <div className="connection-banner warning"><CircleAlert size={18} /><div><strong>Backend status unavailable</strong><span>Check the local server and Firestore configuration.</span></div></div>;
+  }
+
+  if (!status) {
+    return <div className="connection-banner"><LoaderCircle className="spin" size={18} /><div><strong>Checking Google Cloud</strong><span>Verifying Firestore and Google Health configuration.</span></div></div>;
+  }
+
+  const connected = status.firestore === "ready" && status.googleHealth.connected;
+  return (
+    <div className={`connection-banner ${connected ? "connected" : "warning"}`}>
+      {connected ? <CircleCheck size={18} /> : <Cloud size={18} />}
+      <div>
+        <strong>{connected ? "Google Health connected" : "Complete Google Cloud connection"}</strong>
+        <span>
+          Firestore {status.firestore === "ready" ? "ready" : "not reachable"} in {status.firestoreMode} mode
+          {status.projectId ? ` · ${status.projectId}` : ""}
+        </span>
+      </div>
+      {!status.googleHealth.connected && (
+        <a className={`button ${status.configured ? "primary" : "secondary"}`} href={status.configured ? "/api/auth/google-health/start" : "#cloud-setup"}>
+          {status.configured ? "Connect Google Health" : "Configuration required"}
+        </a>
+      )}
+    </div>
+  );
+}

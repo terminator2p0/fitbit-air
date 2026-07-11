@@ -20,18 +20,18 @@ The legacy Fitbit Web API is scheduled to stop syncing in September 2026. The in
 
 A browser-only application cannot safely retain OAuth client secrets or reliably run scheduled synchronization and email reminders while closed. The server is therefore responsible for OAuth token storage, data synchronization, derivations, reminders, exports, and backups.
 
-Local development uses `localhost` OAuth redirects, a local PostgreSQL instance, and environment files that are excluded from Git. Cloud deployment will use managed HTTPS, a managed PostgreSQL database, encrypted cloud secrets, and the same versioned database migrations. Real health data and exports must never be committed.
+Local development uses `localhost` OAuth redirects, the Firestore emulator, and environment files excluded from Git. Cloud deployment will use managed HTTPS, Firestore, Secret Manager, and a dedicated Cloud Run service account. Real health data and exports must never be committed.
 
 ## Proposed implementation stack
 
 - Frontend: Next.js, TypeScript, React, and an accessible component system.
 - Backend: Next.js server routes and background worker initially; split service only if operational needs justify it.
-- Database: PostgreSQL with typed tables for normalized health records and derived daily summaries.
+- Database: Firestore Standard with typed converters for source records, normalized measurements, daily summaries, and user context.
 - Jobs: database-backed scheduled jobs for synchronization, aggregation, and reminders.
 - Charts: a React charting library with accessible tabular fallbacks.
 - Email: transactional email provider or SMTP configured by environment variables.
-- Local runtime: web process, worker, and PostgreSQL, preferably orchestrated with Docker Compose.
-- Deployment: private cloud hosting with HTTPS after local acceptance criteria pass.
+- Local runtime: web process and Firestore emulator.
+- Deployment: Cloud Run and Firestore with HTTPS after local acceptance criteria pass.
 
 ## Logical data flow
 

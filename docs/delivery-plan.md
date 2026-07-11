@@ -19,7 +19,7 @@ Exit gate: real account data has been retrieved for the five core domains and an
 
 Estimated duration: 2-3 weeks.
 
-- Scaffold the web project, database, authentication, and local development environment.
+- Scaffold the web project, Firestore data layer, authentication, and local development environment.
 - Implement Google OAuth and encrypted token storage.
 - Implement Google Health source adapters, initial backfill, incremental sync, and provenance.
 - Add normalized schemas, daily rollups, data coverage, and sync status.
