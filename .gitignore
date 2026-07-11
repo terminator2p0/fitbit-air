@@ -1,5 +1,6 @@
 # Dependencies
 node_modules/
+.pnpm-store/
 
 # Framework output
 .next/
@@ -7,6 +8,10 @@ out/
 dist/
 build/
 coverage/
+
+# Generated TypeScript files
+*.tsbuildinfo
+next-env.d.ts
 
 # Local environment and secrets
 .env
